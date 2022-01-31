@@ -105,9 +105,9 @@ int main(void) {
       });
 
   // initial curve -- 
-  auto curve = initialCurve();
+//  auto curve = initialCurve();
   //To load the arc length parameterized curve (only worth part marks):
-        //auto curve = modelling::readHermiteCurveFromFile("./models/roller_coaster_3_ALP.txt").value();
+  auto curve = modelling::readHermiteCurveFrom_OBJ_File("./models/roller_coaster_3.obj").value();
   
   // control points
   auto cp_geometry = controlPointsGeometry(curve);
@@ -126,7 +126,7 @@ int main(void) {
   auto track_style = GL_Line(Width(15.), Colour(0.2, 0.7, 1.0));
   auto track_render = createRenderable(track_geometry, track_style);
 
-  size_t controlPointIndex = 0;
+//  size_t controlPointIndex = 0;
   float s = 0.f;
   float delta_s = 0.2f, delta_u = 0.00001f;
   float arc_length = modelling::arcLength(curve, delta_u);
@@ -153,7 +153,11 @@ int main(void) {
         updateRenderable(track_geometry, track_style, track_render);
 
         // reset
-//        controlPointIndex = 0;
+		s = 0.f;
+	    delta_s = 0.2f;
+		delta_u = 0.00001f;
+	  	arc_length = modelling::arcLength(curve, delta_u);
+		arcLengthTable = modelling::calculateArcLengthTable(curve, delta_s, delta_u);
       }
     }
 
@@ -172,8 +176,7 @@ int main(void) {
     // updates from panel
     //
     applyPanel();
-
-    //
+	//
     // simulation
     //
     if (panel::play) {
@@ -196,7 +199,7 @@ int main(void) {
 //    addInstance(sue_renders, M);
 
 
-    //TODO: Currently sampling directly out of the curve. 
+    // Currently sampling directly out of the curve.
     //For full marks, the ArcLengthTable (or an equivalent) 
     //needs be completed and used for proper traversal of the curve.
 //	std::cout<<s<<std::endl;
