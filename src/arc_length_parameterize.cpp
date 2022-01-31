@@ -79,10 +79,10 @@ ArcLengthTable calculateArcLengthTable(HermiteCurve const &curve, float delta_s,
 	ArcLengthTable table(delta_s);
 	table.addNext(0);
 	float delta_s_acc = 0.0, u = 0.0;
-	while (u <= 1) {
+	while (u < 1) {
 		delta_s_acc += length(curve(u + delta_u) - curve(u));
 		u += delta_u;
-		if (delta_s_acc >= delta_s) {
+		if (delta_s_acc > delta_s) {
 			table.addNext(u);
 			delta_s_acc = 0;
 		}
