@@ -18,16 +18,20 @@ ArcLengthTable::ArcLengthTable(float deltaS) : m_delta_s(deltaS) {
 float ArcLengthTable::nearestValueTo(float s) const {
   auto index = indexAt(s);
   if (index >= m_values.size()) {
+	  std::cout<<"nearValueIndex: "<< m_values.size() - 1<<std::endl;
 	  return m_values[m_values.size() - 1];
   }
+  std::cout<<"nearValueIndex: "<< index << std::endl;
   return m_values[index];
 }
 
 float ArcLengthTable::nextValueTo(float s) const {
 	auto index = indexAt(s);
 	if (index + 1 >= m_values.size()) {
+		std::cout<<"nextValueIndex: "<< 0 <<std::endl;
 		return m_values[0];
 	}
+	std::cout<<"nextValueIndex: "<< index + 1<<std::endl;
 	return m_values[index + 1];
 }
 
