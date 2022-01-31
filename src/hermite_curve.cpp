@@ -45,7 +45,7 @@ vec3f evaluateCubicHermite(vec3f const &positionA, vec3f const &tangentA,
                            vec3f const &positionB, vec3f const &tangentB,
                            float u) {
   //
-  // TODO (Students): lerp for now, but replace with Hermite, or other...
+  // (Students): lerp for now, but replace with Hermite, or other...
   // Note that 0 <= u <= 1 indicating the portion travelled along the segement between points A and B.
   //
   float u3 = u * u * u, u2 = u * u;

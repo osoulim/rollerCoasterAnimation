@@ -11,7 +11,9 @@ namespace modelling {
 // public interface
 //
 
-ArcLengthTable::ArcLengthTable(float deltaS) : m_delta_s(deltaS) {}
+ArcLengthTable::ArcLengthTable(float deltaS) : m_delta_s(deltaS) {
+
+}
 
 float ArcLengthTable::nearestValueTo(float s) const {
   auto index = indexAt(s);
@@ -63,9 +65,22 @@ ArcLengthTable calculateArcLengthTable(HermiteCurve const &curve, float delta_s,
   // TODO (Students): calculate the arc-length parameterization...
   //
   assert(delta_u > 0.f);
-
-  ArcLengthTable table(delta_s);
-
+	ArcLengthTable table(delta_s);
+	float arc_length = modelling::arcLength(curve, delta_u);
+	table.addNext(0);
+	float delta_s_acc = 0.0, u = 0.0;
+	while (u <= 1) {
+		delta_s_acc += length(curve(u + delta_u) - curve(u));
+		u += delta_u;
+		if (delta_s_acc >= delta_s) {
+			table.addNext(u);
+			delta_s_acc = 0;
+		}
+	}
+	// TODO remove this tof!
+	while (table.size() <= arc_length / delta_s) {
+		table.addNext(u);
+	}
   return table;
 }
 

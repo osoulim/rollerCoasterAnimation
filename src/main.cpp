@@ -127,7 +127,11 @@ int main(void) {
   auto track_render = createRenderable(track_geometry, track_style);
 
   size_t controlPointIndex = 0;
-  float u = 0.f;
+  float s = 0.f;
+  float delta_s = 0.2f, delta_u = 0.00001f;
+  float arc_length = modelling::arcLength(curve, delta_u);
+  modelling::ArcLengthTable arcLengthTable = modelling::calculateArcLengthTable(curve, delta_s, delta_u);
+  std::cout<<arc_length<<" "<<arcLengthTable.size()<<std::endl;
 
   //
   // panel update
@@ -149,7 +153,7 @@ int main(void) {
         updateRenderable(track_geometry, track_style, track_render);
 
         // reset
-        controlPointIndex = 0;
+//        controlPointIndex = 0;
       }
     }
 
@@ -174,28 +178,29 @@ int main(void) {
     //
     if (panel::play) {
       // increment and wrap
-      ++controlPointIndex;
-      if (controlPointIndex >= curve.controlPoints().size())
-        controlPointIndex = 0;
+//      ++controlPointIndex;
+//      if (controlPointIndex >= curve.controlPoints().size())
+//        controlPointIndex = 0;
 
-      u += 0.001f;
-      if (u >= 1.f)
-        u = 0.f;
+      s += delta_s;
+      if (s >= arc_length)
+        s = 0.f;
     }
 
     auto p = vec3f{0.f, 0.f, 0.f};
     auto M = translate(mat4f{1.f}, p);
     addInstance(sue_renders, M);
 
-    auto cp = curve.controlPoints()[controlPointIndex];
-    M = glm::translate(mat4f{1.f}, cp.position);
-    addInstance(sue_renders, M);
+//    auto cp = curve.controlPoints()[controlPointIndex];
+//    M = glm::translate(mat4f{1.f}, cp.position);
+//    addInstance(sue_renders, M);
 
 
     //TODO: Currently sampling directly out of the curve. 
     //For full marks, the ArcLengthTable (or an equivalent) 
-    //needs be completed and used for proper traversal of the curve. 
-    auto curve_p = curve(u); 
+    //needs be completed and used for proper traversal of the curve.
+//	std::cout<<s<<std::endl;
+    auto curve_p = curve(arcLengthTable.nearestValueTo(s));
     M = scale(translate(mat4f{1.f}, curve_p), vec3f{0.75});
     addInstance(sue_renders, M);
 
