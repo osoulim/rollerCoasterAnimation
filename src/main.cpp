@@ -128,7 +128,7 @@ int main(void) {
 
 //  size_t controlPointIndex = 0;
   float s = 0.f;
-  float delta_u = 0.0001f, speed = 0.3f;
+  float delta_u = 0.00001f, speed = 0.1f;
   float arc_length = modelling::arcLength(curve, delta_u);
   float delta_s = arc_length / 200;
   modelling::ArcLengthTable arcLengthTable = modelling::calculateArcLengthTable(curve, delta_s, delta_u);
@@ -155,9 +155,10 @@ int main(void) {
 
         // reset
 		s = 0.f;
-	    delta_s = 0.2f;
+		speed = 0.1f;
+		arc_length = modelling::arcLength(curve, delta_u);
+		delta_s = arc_length / 200;
 		delta_u = 0.00001f;
-	  	arc_length = modelling::arcLength(curve, delta_u);
 		arcLengthTable = modelling::calculateArcLengthTable(curve, delta_s, delta_u);
       }
     }
@@ -198,9 +199,11 @@ int main(void) {
 	  s += speed;
 	  if (s >= arc_length)
 		  s -= arc_length;
+	  std::cout<<s<<" "<<arc_length<<std::endl;
 	}
 	auto curve_p = curve(arcLengthTable.nearestValueTo(s));
 	auto curve_q = curve(arcLengthTable.nextValueTo(s));
+//	std::cout<<curve_p.x<<","<<curve_p.y<<" "<<curve_q.x<<","<<curve_q.y<<std::endl;
 	float index = std::floor(s / delta_s);
 	auto point = curve_p + ((s - index * delta_s) / delta_s) * (curve_q - curve_p);
 	M = scale(translate(mat4f{1.f}, point), vec3f{0.75});
@@ -212,14 +215,14 @@ int main(void) {
     auto color = panel::clear_color;
     glClearColor(color.x, color.y, color.z, color.z);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     view.projection.updateAspectRatio(window.width(), window.height());
-   
+   	view.camera.translate(point);
     draw(cp_render, view);
 
     draw(sue_renders, view);
 
     draw(track_render, view);
+	view.camera.translate(-point);
 
   });
 
