@@ -35,6 +35,7 @@ public: // interface
 
   // accessors
   float nearestValueTo(float s) const;
+  float nextValueTo(float s) const;
   float operator()(float s) const;
 
   size_t size() const;

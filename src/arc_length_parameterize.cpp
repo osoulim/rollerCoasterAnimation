@@ -17,7 +17,18 @@ ArcLengthTable::ArcLengthTable(float deltaS) : m_delta_s(deltaS) {
 
 float ArcLengthTable::nearestValueTo(float s) const {
   auto index = indexAt(s);
+  if (index >= m_values.size()) {
+	  return m_values[m_values.size() - 1];
+  }
   return m_values[index];
+}
+
+float ArcLengthTable::nextValueTo(float s) const {
+	auto index = indexAt(s);
+	if (index + 1 >= m_values.size()) {
+		return m_values[0];
+	}
+	return m_values[index + 1];
 }
 
 float ArcLengthTable::operator()(float s) const { return nearestValueTo(s); }
@@ -66,7 +77,6 @@ ArcLengthTable calculateArcLengthTable(HermiteCurve const &curve, float delta_s,
   //
   assert(delta_u > 0.f);
 	ArcLengthTable table(delta_s);
-	float arc_length = modelling::arcLength(curve, delta_u);
 	table.addNext(0);
 	float delta_s_acc = 0.0, u = 0.0;
 	while (u <= 1) {
@@ -76,10 +86,6 @@ ArcLengthTable calculateArcLengthTable(HermiteCurve const &curve, float delta_s,
 			table.addNext(u);
 			delta_s_acc = 0;
 		}
-	}
-	// TODO remove this tof!
-	while (table.size() <= arc_length / delta_s) {
-		table.addNext(u);
 	}
   return table;
 }

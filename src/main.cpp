@@ -105,9 +105,9 @@ int main(void) {
       });
 
   // initial curve -- 
-//  auto curve = initialCurve();
+  auto curve = initialCurve();
   //To load the arc length parameterized curve (only worth part marks):
-  auto curve = modelling::readHermiteCurveFrom_OBJ_File("./models/roller_coaster_3.obj").value();
+//  auto curve = modelling::readHermiteCurveFrom_OBJ_File("./models/roller_coaster_3.obj").value();
   
   // control points
   auto cp_geometry = controlPointsGeometry(curve);
@@ -128,8 +128,9 @@ int main(void) {
 
 //  size_t controlPointIndex = 0;
   float s = 0.f;
-  float delta_s = 0.2f, delta_u = 0.00001f;
+  float delta_u = 0.0001f, speed = 0.3f;
   float arc_length = modelling::arcLength(curve, delta_u);
+  float delta_s = arc_length / 200;
   modelling::ArcLengthTable arcLengthTable = modelling::calculateArcLengthTable(curve, delta_s, delta_u);
   std::cout<<arc_length<<" "<<arcLengthTable.size()<<std::endl;
 
@@ -179,20 +180,10 @@ int main(void) {
 	//
     // simulation
     //
-    if (panel::play) {
-      // increment and wrap
-//      ++controlPointIndex;
-//      if (controlPointIndex >= curve.controlPoints().size())
-//        controlPointIndex = 0;
-
-      s += delta_s;
-      if (s >= arc_length)
-        s = 0.f;
-    }
 
     auto p = vec3f{0.f, 0.f, 0.f};
     auto M = translate(mat4f{1.f}, p);
-    addInstance(sue_renders, M);
+//    addInstance(sue_renders, M);
 
 //    auto cp = curve.controlPoints()[controlPointIndex];
 //    M = glm::translate(mat4f{1.f}, cp.position);
@@ -203,8 +194,16 @@ int main(void) {
     //For full marks, the ArcLengthTable (or an equivalent) 
     //needs be completed and used for proper traversal of the curve.
 //	std::cout<<s<<std::endl;
-    auto curve_p = curve(arcLengthTable.nearestValueTo(s));
-    M = scale(translate(mat4f{1.f}, curve_p), vec3f{0.75});
+	if (panel::play) {
+	  s += speed;
+	  if (s >= arc_length)
+		  s -= arc_length;
+	}
+	auto curve_p = curve(arcLengthTable.nearestValueTo(s));
+	auto curve_q = curve(arcLengthTable.nextValueTo(s));
+	float index = std::floor(s / delta_s);
+	auto point = curve_p + ((s - index * delta_s) / delta_s) * (curve_q - curve_p);
+	M = scale(translate(mat4f{1.f}, point), vec3f{0.75});
     addInstance(sue_renders, M);
 
     //
