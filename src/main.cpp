@@ -199,7 +199,7 @@ int main(void) {
 	  s += speed;
 	  if (s >= arc_length)
 		  s -= arc_length;
-	  std::cout<<s<<" "<<arc_length<<std::endl;
+//	  std::cout<<s<<" "<<arc_length<<std::endl;
 	}
 	auto curve_p = curve(arcLengthTable.nearestValueTo(s));
 	auto curve_q = curve(arcLengthTable.nextValueTo(s));
