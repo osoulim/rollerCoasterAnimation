@@ -128,11 +128,11 @@ int main(void) {
 	auto track_render = createRenderable(track_geometry, track_style);
 
 //  size_t controlPointIndex = 0;
-	float s = 0.f;
-	float delta_u = 0.00001f, speed = 0.1f;
+	float s = 0.f, scaleFactor = 1.f / 200.f, delta_u = 0.00001f, speed = 0.0f;
 	float arc_length = modelling::arcLength(curve, delta_u);
 	float delta_s = arc_length / 200;
 	modelling::ArcLengthTable arcLengthTable = modelling::calculateArcLengthTable(curve, delta_s, delta_u);
+	auto maxPoint = utils::getMaxPoint(curve, arcLengthTable);
 	std::cout<<arc_length<<" "<<arcLengthTable.size()<<std::endl;
 
 	//
@@ -155,11 +155,11 @@ int main(void) {
 				updateRenderable(track_geometry, track_style, track_render);
 
 				// reset
-				s = 0.f;
-				delta_u = 0.00001f, speed = 0.1f;
+				s = 0.f, speed = 0.0f;
 				arc_length = modelling::arcLength(curve, delta_u);
 				delta_s = arc_length / 200;
 				arcLengthTable = modelling::calculateArcLengthTable(curve, delta_s, delta_u);
+				maxPoint = utils::getMaxPoint(curve, arcLengthTable);
 			}
 		}
 
@@ -195,7 +195,7 @@ int main(void) {
 		//For full marks, the ArcLengthTable (or an equivalent)
 		//needs be completed and used for proper traversal of the curve.
 //	std::cout<<s<<std::endl;
-		auto old_point = utils::getInterpolatedPoint(curve, arcLengthTable, delta_s, s);
+		auto lastPoint = utils::getInterpolatedPoint(curve, arcLengthTable, delta_s, s);
 		if (panel::play) {
 			s += speed;
 			if (s >= arc_length)
@@ -206,16 +206,10 @@ int main(void) {
 		M = scale(translate(mat4f{1.f}, point), vec3f{0.75});
 		addInstance(sue_renders, M);
 
-		float delta_h = old_point.y - point.y;
-		if (delta_h >= 0) {
-			speed += std::sqrt(delta_h / 200);
-		} else {
-			speed -= std::sqrt(-delta_h / 200);
+		speed += utils::getDeltaSpeed(point, lastPoint, scaleFactor);
+		if (speed < utils::getEnoughSpeed(point, maxPoint, scaleFactor) && panel::play) {
+			speed += 0.02;
 		}
-		if (speed < 0.10) {
-			speed = 0.10;
-		}
-
 		//
 		// render
 		//
