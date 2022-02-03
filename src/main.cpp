@@ -108,7 +108,7 @@ int main(void) {
 	// initial curve --
 //	auto curve = initialCurve();
 	//To load the arc length parameterized curve (only worth part marks):
-  	auto curve = modelling::readHermiteCurveFrom_OBJ_File("./models/roller_coaster_3.obj").value();
+  	auto curve = modelling::readHermiteCurveFrom_OBJ_File("./models/roller_coaster_1.obj").value();
 
 	// control points
 	auto cp_geometry = controlPointsGeometry(curve);
@@ -128,7 +128,7 @@ int main(void) {
 	auto track_render = createRenderable(track_geometry, track_style);
 
 //  size_t controlPointIndex = 0;
-	float s = 0.f, scaleFactor = 1.f / 200.f, delta_u = 0.00001f, speed = 0.0f, acceleration = 0.02;
+	float s = 0.f, scaleFactor = 1.f / 200.f, delta_u = 0.00001f, speed = 0.0f, acceleration = std::sqrt(scaleFactor) * 1.5;
 	float arc_length = modelling::arcLength(curve, delta_u);
 	float delta_s = arc_length / 200;
 	modelling::ArcLengthTable arcLengthTable = modelling::calculateArcLengthTable(curve, delta_s, delta_u);
@@ -201,19 +201,21 @@ int main(void) {
 			if (s >= arc_length) {
 				s -= arc_length;
 			}
-			if (s >= arc_length * 0.75 && speed > 0) {
-				float dist = arc_length - s;
-				speed -= (speed * speed) / (2 * dist);
-			} else if (speed < utils::getEnoughSpeed(lastPoint, maxPoint, scaleFactor)) {
-				speed += acceleration;
-			}
 		}
 		auto point = utils::getInterpolatedPoint(curve, arcLengthTable, delta_s, s);
 		M = scale(translate(mat4f{1.f}, point), vec3f{0.75});
 		addInstance(sue_renders, M);
 
+		if (panel::play) {
+			if (s >= arc_length * 0.75 && speed > 1e-5) {
+				float dist = arc_length - s;
+				speed -= (speed * speed) / (2 * dist);
+			} else if (speed < utils::getEnoughSpeed(point, maxPoint, scaleFactor)) {
+				speed += acceleration;
+			}
+		}
 		speed += utils::getDeltaSpeed(point, lastPoint, scaleFactor);
-
+//		std::cout<<speed<<std::endl;
 		//
 		// render
 		//
