@@ -109,7 +109,7 @@ int main(void) {
 	// initial curve --
 //	auto curve = initialCurve();
 	//To load the arc length parameterized curve (only worth part marks):
-  	auto curve = modelling::readHermiteCurveFrom_OBJ_File("./models/roller_coaster_3.obj").value();
+  	auto curve = modelling::readHermiteCurveFrom_OBJ_File("./models/roller_coaster_1.obj").value();
 
 	// control points
 	auto cp_geometry = controlPointsGeometry(curve);
@@ -204,10 +204,14 @@ int main(void) {
 			}
 		}
 
-		auto point = utils::getInterpolatedPoint(curve, arcLengthTable, delta_s, s);
-		auto m = utils::calculateMatrixOfPoint(curve, arcLengthTable, maxPoint, point, arc_length, delta_s, s, true);
-		addInstance(sue_renders, m);
+		for (int i = 0; i < 3; i++) {
+			float point_s = s - i * delta_s;
+			auto point = utils::getInterpolatedPoint(curve, arcLengthTable, delta_s, point_s);
+			auto m = utils::calculateMatrixOfPoint(curve, arcLengthTable, maxPoint, point, arc_length, delta_s, point_s, true);
+			addInstance(sue_renders, m);
+		}
 
+		auto point = utils::getInterpolatedPoint(curve, arcLengthTable, delta_s, s);
 		if (panel::play) {
 			if (s >= arc_length * 0.75 && speed > 1e-4) {
 				float dist = arc_length - s;
