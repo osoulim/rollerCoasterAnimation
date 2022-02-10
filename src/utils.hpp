@@ -84,6 +84,28 @@ namespace utils {
 		return getDeltaSpeed(point, maxPoint);
 	}
 
-
+	glm::mat4 calculateMatrixOfPoint(
+			modelling::HermiteCurve const &curve,
+			modelling::ArcLengthTable const &arcLengthTable,
+			glm::vec3 maxPoint,
+			glm::vec3 point,
+			float arc_length, float delta_s, float s,
+			bool translateWagon=false) {
+		auto tangent = utils::getTangentOfPoint(curve, arcLengthTable, arc_length, delta_s, s);
+		auto normal = utils::getNormalOfPoint(
+				curve,
+				arcLengthTable,
+				utils::getEnoughSpeed(point, maxPoint),
+				arc_length,
+				delta_s, s);
+		auto biNormal = glm::normalize(glm::cross(tangent, normal));
+		tangent = glm::normalize(glm::cross(normal, biNormal));
+		normal = glm::cross(biNormal, tangent);
+		if (translateWagon) {
+			point += normal;
+		}
+		glm::mat4 m(glm::vec4{biNormal, 0}, glm::vec4{normal, 0}, glm::vec4{tangent, 0}, glm::vec4{point, 1.f});
+		return m;
+	}
 
 } //end of namespace utils

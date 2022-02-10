@@ -109,7 +109,7 @@ int main(void) {
 	// initial curve --
 //	auto curve = initialCurve();
 	//To load the arc length parameterized curve (only worth part marks):
-  	auto curve = modelling::readHermiteCurveFrom_OBJ_File("./models/roller_coaster_1.obj").value();
+  	auto curve = modelling::readHermiteCurveFrom_OBJ_File("./models/roller_coaster_3.obj").value();
 
 	// control points
 	auto cp_geometry = controlPointsGeometry(curve);
@@ -118,23 +118,27 @@ int main(void) {
 
 	// instanced monkey --
 	// In the place for a cart
-	auto sue_geometry = Mesh(Filename("./models/monkey.obj"));
-	auto sue_style = Phong(Colour(1.f, 1.f, 0.f), LightPosition(100.f, 100.f, 100.f));
+	auto sue_geometry = Mesh(Filename("./models/cart.obj"));
+	auto sue_style = Phong(Colour(1.f, 1.f, 1.f), LightPosition(100.f, 100.f, 100.f));
 	auto sue_renders = createInstancedRenderable(sue_geometry, sue_style);
 
 	auto rail_geometry = Mesh(Filename("./models/block.obj"));
 	auto rail_renders = createInstancedRenderable(rail_geometry, sue_style);
 
+	auto earth_geometry = Mesh(Filename("./models/earth.obj"));
+	auto earth_renders = createInstancedRenderable(earth_geometry, sue_style);
+
+
 	auto track_geometry = sampleTrack(curve, 500);
 	auto track_style = GL_Line(Width(15.), Colour(0.2, 0.7, 1.0));
 	auto track_render = createRenderable(track_geometry, track_style);
 
-	float s = 0.f, delta_t = 1.f / 50.f, delta_u = 0.00001f, speed = 0.0f, acceleration = 0.2;
+	float s = 0.f, delta_t = 1.f / 50.f, delta_u = 0.00001f, speed = 0.0f;
 	float arc_length = modelling::arcLength(curve, delta_u);
 	float delta_s = arc_length / 200;
 	modelling::ArcLengthTable arcLengthTable = modelling::calculateArcLengthTable(curve, delta_s, delta_u);
 	auto maxPoint = utils::getMaxPoint(curve, arcLengthTable) + vec3{0.f, 5.f, 0.f};
-	std::cout<<arc_length<<" "<<arcLengthTable.size()<<std::endl;
+//	std::cout<<arc_length<<" "<<arcLengthTable.size()<<std::endl;
 	std::vector<glm::mat4> rails;
 
 	auto applyPanel = [&]() {
@@ -154,29 +158,18 @@ int main(void) {
 				updateRenderable(track_geometry, track_style, track_render);
 
 				// reset
-				s = 0.f, speed = 0.0f;
+				s = 0.f, delta_t = 1.f / 50.f, delta_u = 0.00001f, speed = 0.0f;
 				arc_length = modelling::arcLength(curve, delta_u);
-				delta_s = arc_length / delta_t;
+				delta_s = arc_length / 200;
 				arcLengthTable = modelling::calculateArcLengthTable(curve, delta_s, delta_u);
-				maxPoint = utils::getMaxPoint(curve, arcLengthTable);
-			}
+				maxPoint = utils::getMaxPoint(curve, arcLengthTable) + vec3{0.f, 5.f, 0.f};
 
-			rails.clear();
-			for (float rail_s = 0; rail_s < arc_length; rail_s += delta_s) {
-				auto rail_point = utils::getInterpolatedPoint(curve, arcLengthTable, delta_s, rail_s);
-				std::cout<<rail_point.x<<rail_point.y<<rail_point.z<<std::endl;
-				auto tangent = utils::getTangentOfPoint(curve, arcLengthTable, arc_length, delta_s, rail_s);
-				auto normal = utils::getNormalOfPoint(
-						curve,
-						arcLengthTable,
-						utils::getEnoughSpeed(rail_point, maxPoint),
-						arc_length,
-						delta_s, rail_s);
-				auto biNormal = glm::normalize(glm::cross(tangent, normal));
-				tangent = glm::normalize(glm::cross(normal, biNormal));
-				normal = glm::cross(biNormal, tangent);
-				glm::mat4 m(vec4{biNormal, 0}, vec4{normal, 0}, vec4{tangent, 0}, vec4{rail_point, 1.f});
-				rails.emplace_back(scale(m, vec3{1/200.f}));
+				rails.clear();
+				for (float rail_s = 0; rail_s < arc_length; rail_s += delta_s/2) {
+					auto rail_point = utils::getInterpolatedPoint(curve, arcLengthTable, delta_s, rail_s);
+					auto m = utils::calculateMatrixOfPoint(curve, arcLengthTable, maxPoint, rail_point, arc_length, delta_s, rail_s);
+					rails.emplace_back(scale(m, vec3{1 / 3.f}));
+				}
 			}
 
 		}
@@ -189,19 +182,8 @@ int main(void) {
 
 	for (float rail_s = 0; rail_s < arc_length; rail_s += delta_s / 2) {
 		auto rail_point = utils::getInterpolatedPoint(curve, arcLengthTable, delta_s, rail_s);
-		std::cout<<rail_point.x<<rail_point.y<<rail_point.z<<std::endl;
-		auto tangent = utils::getTangentOfPoint(curve, arcLengthTable, arc_length, delta_s, rail_s);
-		auto normal = utils::getNormalOfPoint(
-				curve,
-				arcLengthTable,
-				utils::getEnoughSpeed(rail_point, maxPoint),
-				arc_length,
-				delta_s, rail_s);
-		auto biNormal = glm::normalize(glm::cross(tangent, normal));
-		tangent = glm::normalize(glm::cross(normal, biNormal));
-		normal = glm::cross(biNormal, tangent);
-		glm::mat4 m(vec4{biNormal, 0}, vec4{normal, 0}, vec4{tangent, 0}, vec4{rail_point, 1.f});
-		rails.emplace_back(scale(m, vec3{1/100.f}));
+		auto m = utils::calculateMatrixOfPoint(curve, arcLengthTable, maxPoint, rail_point, arc_length, delta_s, rail_s);
+		rails.emplace_back(scale(m, vec3{1/3.f}));
 	}
 
 
@@ -212,6 +194,8 @@ int main(void) {
 			addInstance(rail_renders,  rail_mat);
 		}
 
+		addInstance(earth_renders, glm::translate(mat4{1.f}, vec3{0.f, -20.f, 0.f}));
+
 		auto lastPoint = utils::getInterpolatedPoint(curve, arcLengthTable, delta_s, s);
 		if (panel::play) {
 			s += speed * delta_t;
@@ -219,20 +203,9 @@ int main(void) {
 				s -= arc_length;
 			}
 		}
+
 		auto point = utils::getInterpolatedPoint(curve, arcLengthTable, delta_s, s);
-		auto tangent = utils::getTangentOfPoint(curve, arcLengthTable, arc_length, delta_s, s);
-		auto normal = utils::getNormalOfPoint(
-				curve,
-				arcLengthTable,
-				utils::getEnoughSpeed(point, maxPoint),
-				arc_length,
-				delta_s, s);
-		auto biNormal = glm::normalize(glm::cross(tangent, normal));
-		tangent = glm::normalize(glm::cross(normal, biNormal));
-		normal = glm::cross(biNormal, tangent);
-		point += normal * 2.f;
-		glm::mat4 m(vec4{biNormal, 0}, vec4{normal, 0}, vec4{tangent, 0}, vec4{point, 1.f});
-//		glm::mat4 scale = glm::scale(m, vec3{0.01f});
+		auto m = utils::calculateMatrixOfPoint(curve, arcLengthTable, maxPoint, point, arc_length, delta_s, s, true);
 		addInstance(sue_renders, m);
 
 		if (panel::play) {
@@ -260,6 +233,8 @@ int main(void) {
 		draw(track_render, view);
 
 		draw(rail_renders, view);
+		draw(earth_renders, view);
+
 		view.camera.translate(-point);
 
 	});
