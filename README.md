@@ -1,3 +1,11 @@
+#Assignment #1 - CPSC 687
+## Mohammadreza Osouli - 30155705
+
+-------------
+I had some problems with calculating normal value. The result is not **that** satisfying.
+Multi wagon implemented (works well with right values of normal). Also, following Camera is implemented too.
+
+-------------
 Documentation
 -------------
 
